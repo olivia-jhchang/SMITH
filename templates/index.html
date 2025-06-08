@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Road Facility Management</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    #map { height: 500px; }
+  </style>
+</head>
+<body>
+  <h1>Road Facility Management</h1>
+  <div id="map"></div>
+  <h2>Add Facility</h2>
+  <form id="facilityForm">
+    Latitude: <input type="text" name="lat" required><br>
+    Longitude: <input type="text" name="lng" required><br>
+    Description: <input type="text" name="description"><br>
+    <button type="submit">Add</button>
+  </form>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    var map = L.map('map').setView([37.5665, 126.9780], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    function loadFacilities() {
+      fetch('/data').then(r => r.json()).then(points => {
+        points.forEach(p => {
+          L.marker([p.lat, p.lng]).addTo(map).bindPopup(p.description);
+        });
+      });
+    }
+
+    document.getElementById('facilityForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      var formData = new FormData(this);
+      fetch('/add', {method: 'POST', body: formData}).then(r => r.json()).then(() => {
+        loadFacilities();
+        this.reset();
+      });
+    });
+
+    loadFacilities();
+  </script>
+</body>
+</html>
